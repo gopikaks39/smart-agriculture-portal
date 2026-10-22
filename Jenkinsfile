@@ -52,7 +52,7 @@ pipeline {
                     }
                 }
 
-             ```groovy
+             
 stage('Dashboard Smoke Test') {
     steps {
         powershell '''
@@ -83,7 +83,7 @@ stage('Dashboard Smoke Test') {
         '''
     }
 }
-```
+
             }
         }
 
