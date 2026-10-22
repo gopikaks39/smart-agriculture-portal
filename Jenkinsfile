@@ -63,7 +63,7 @@ pipeline {
                                     throw "Missing required content: $item"
                                 }
                             }
-                            if ($html -notmatch 'moistures*<\s*30') {
+                            if ($html -notmatch 'moisture\s*<\s*30') {
                                 throw "Missing irrigation threshold below 30%."
                             }
                             Write-Output "Dashboard smoke test passed."
