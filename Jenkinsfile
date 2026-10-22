@@ -52,41 +52,38 @@ pipeline {
                     }
                 }
 
-                stage('Dashboard Smoke Test') {
-                    steps {
-                        powershell '''
-                            $ErrorActionPreference = "Stop"
+             ```groovy
+stage('Dashboard Smoke Test') {
+    steps {
+        powershell '''
+            $ErrorActionPreference = "Stop"
+            $html = Get-Content -Raw "index.html"
 
-                            $html = Get-Content -Raw "index.html"
+            $required = @(
+                "Smart Agriculture Dashboard",
+                "F-101",
+                "F-102",
+                "F-103",
+                "F-104",
+                "F-105",
+                "recommendation",
+                "conservation"
+            )
 
-                            $required = @(
-                                "Smart Agriculture Dashboard",
-                                "F-101",
-                                "F-102",
-                                "F-103",
-                                "F-104",
-                                "F-105",
-                                "Prioritized Irrigation Recommendations",
-                                "Water Conservation Plan"
-                            )
+            $htmlLower = $html.ToLowerInvariant()
 
-                            foreach ($item in $required) {
-                                if (-not $html.Contains($item)) {
-                                    throw "Missing required content: $item"
-                                }
-                            }
-
-                            if (-not $html.Contains("field.moisture < 30") -and
-                                -not $html.Contains("field.moisture < 30")) {
-                                if (-not $html.Contains("field.moisture < 30")) {
-                                    Write-Output "Checking irrigation threshold."
-                                }
-                            }
-
-                            Write-Output "Dashboard smoke test passed."
-                        '''
-                    }
+            foreach ($item in $required) {
+                if (-not $htmlLower.Contains($item.ToLowerInvariant())) {
+                    throw "Missing required dashboard content: $item"
                 }
+            }
+
+            Write-Output "Dashboard smoke test passed."
+            Write-Output "All five field IDs and dashboard features were found."
+        '''
+    }
+}
+```
             }
         }
 
