@@ -18,9 +18,9 @@ stage('Dashboard smoke test') {
                 }
             }
 
-            if ($html -notmatch 'moisture\s*<\s*30') {
-                throw "Missing irrigation threshold below 30%."
-            }
+           if (-not $html.Contains('moisture<30')) {
+    throw "Missing irrigation threshold below 30%."
+}
 
             Write-Output "Dashboard smoke test passed."
         '''
