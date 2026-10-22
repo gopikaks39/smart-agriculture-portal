@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Agriculture Dashboard</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f7ef;color:#183b29}
+header{background:#185b39;color:white;padding:28px 5%}
+header h1{margin:8px 0;font-size:34px}
+main{max-width:1250px;margin:auto;padding:24px}
+.stats,.fields,.lower{display:grid;gap:16px}
+.stats{grid-template-columns:repeat(4,1fr)}
+.fields{grid-template-columns:repeat(3,1fr)}
+.lower{grid-template-columns:1fr 1fr;margin-top:20px}
+.card{background:white;border:1px solid #dce8dc;border-radius:14px;padding:18px;box-shadow:0 4px 15px #123b2910}
+small,.muted{color:#627568}
+.big{display:block;font-size:25px;font-weight:bold;margin:8px 0}
+.fieldhead{display:flex;justify-content:space-between;gap:8px}
+.pill{border-radius:20px;padding:5px 8px;font-size:11px;background:#dcf3e1;color:#205c38}
+.alert{background:#ffe2dc;color:#a42b20}
+.track{height:8px;background:#e4ece3;border-radius:10px;overflow:hidden;margin:8px 0 15px}
+.bar{height:100%;background:#38995d}
+.low{background:#d7473a}
+.data{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.data span{display:block;font-size:12px;color:#627568}
+.schedule{border-top:1px solid #e0e8df;padding-top:12px;margin-top:14px;font-size:13px}
+button,select{padding:10px;border:1px solid #b9cbb9;border-radius:8px;background:white}
+button{background:#216b43;color:white;cursor:pointer}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:24px 0 14px}
+li{padding:5px 0}
+@media(max-width:850px){.stats,.fields,.lower{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:550px){.stats,.fields,.lower{grid-template-columns:1fr}main{padding:14px}}
+</style>
+</head>
+<body>
+<header>
+<small style="color:#d6f0df">FIELD INTELLIGENCE · SIMULATED DATA</small>
+<h1>Smart Agriculture Dashboard</h1>
+<p>Monitor soil moisture, irrigation, water usage, weather and crop health.</p>
+</header>
+<main>
+<section class="stats">
+<div class="card"><small>Fields monitored</small><strong class="big" id="count">5</strong></div>
+<div class="card"><small>Daily water consumption</small><strong class="big" id="total">—</strong><small>Litres/day</small></div>
+<div class="card"><small>Lowest soil moisture</small><strong class="big" id="lowest">—</strong><small id="lowestField">—</small></div>
+<div class="card"><small>Irrigation alerts</small><strong class="big" id="alerts">—</strong><small>Below 30% moisture</small></div>
+</section>
+
+<div class="heading">
+<div><h2>Field monitoring</h2><small>Alert threshold: soil moisture below 30%</small></div>
+<div>
+<select id="filter">
+<option value="all">All crops</option>
+<option>Wheat</option><option>Rice</option><option>Maize</option>
+<option>Cotton</option><option>Tomato</option>
+</select>
+<button id="refresh">Refresh readings</button>
+</div>
+</div>
+<section id="fields" class="fields"></section>
+
+<section class="lower">
+<div class="card">
+<h2>Prioritized irrigation recommendations</h2>
+<p class="muted">Fields are sorted by lowest soil moisture first.</p>
+<ol id="recommendations"></ol>
+</div>
+<div class="card">
+<h2>Water conservation plan</h2>
+<p class="muted">Illustrative target: save 15% of daily water consumption.</p>
+<strong class="big" id="saving">—</strong>
+<div class="track"><div class="bar" style="width:15%"></div></div>
+<ul>
+<li>Schedule watering during cooler periods.</li>
+<li>Inspect leaks and consider drip irrigation.</li>
+<li>Check soil moisture after irrigation.</li>
+<li>Consider weather forecasts before watering.</li>
+</ul>
+<button id="complete">Mark priority irrigation complete</button>
+<p id="status" class="muted">No irrigation marked complete yet.</p>
+</div>
+</section>
+<p class="muted" style="text-align:center;margin-top:24px">
+All sensor readings are simulated for demonstration purposes.
+</p>
+</main>
+<script>
+let fields=[
+{id:"F-101",crop:"Wheat",moisture:24,water:1850,temp:29,next:"Today 14:30",health:"Needs attention",done:false},
+{id:"F-102",crop:"Rice",moisture:42,water:2600,temp:31,next:"Tomorrow 06:00",health:"Healthy",done:false},
+{id:"F-103",crop:"Maize",moisture:28,water:1700,temp:30,next:"Today 13:45",health:"Monitor closely",done:false},
+{id:"F-104",crop:"Cotton",moisture:36,water:1450,temp:28,next:"Today 17:00",health:"Healthy",done:false},
+{id:"F-105",crop:"Tomato",moisture:19,water:1250,temp:32,next:"Today 13:15",health:"Needs attention",done:false}
+];
+const fmt=n=>new Intl.NumberFormat("en-IN").format(n);
+function render(){
+let total=fields.reduce((s,f)=>s+f.water,0);
+let low=fields.reduce((a,b)=>a.moisture<b.moisture?a:b);
+document.getElementById("count").textContent=fields.length;
+document.getElementById("total").textContent=fmt(total)+" L";
+document.getElementById("lowest").textContent=low.moisture+"%";
+document.getElementById("lowestField").textContent=low.id+" · "+low.crop;
+document.getElementById("alerts").textContent=fields.filter(f=>f.moisture<30&&!f.done).length;
+document.getElementById("saving").textContent=fmt(Math.round(total*.15))+" L/day";
+let selected=document.getElementById("filter").value;
+let visible=fields.filter(f=>selected==="all"||f.crop===selected);
+document.getElementById("fields").innerHTML=visible.map(f=>`
+<article class="card">
+<div class="fieldhead"><div><h3>${f.id}</h3><small>${f.crop}</small></div>
+<span class="pill ${f.moisture<30&&!f.done?"alert":""}">${f.done?"Complete":f.moisture<30?"Irrigation required":"Moisture adequate"}</span></div>
+<p>Soil moisture: <b>${f.moisture}%</b></p>
+<div class="track"><div class="bar ${f.moisture<30?"low":""}" style="width:${f.moisture}%"></div></div>
+<div class="data">
+<div><span>Daily water</span><b>${fmt(f.water)} L</b></div>
+<div><span>Temperature</span><b>${f.temp}°C</b></div>
+<div><span>Crop health</span><b>${f.health}</b></div>
+<div><span>Threshold</span><b>30%</b></div>
+</div>
+<div class="schedule"><b>Next irrigation:</b> ${f.next}</div>
+</article>`).join("");
+document.getElementById("recommendations").innerHTML=[...fields]
+.sort((a,b)=>a.moisture-b.moisture)
+.map(f=>`<li><b>${f.id} · ${f.crop} (${f.moisture}%)</b><br>
+<small>${f.done?"Marked complete":f.moisture<30?"Priority: irrigate soon":"Monitor and follow schedule"} · ${f.next}</small></li>`).join("");
+}
+document.getElementById("filter").addEventListener("change",render);
+document.getElementById("refresh").addEventListener("click",()=>{
+fields=fields.map(f=>({...f,
+moisture:Math.max(10,Math.min(65,f.moisture+Math.floor(Math.random()*9)-4)),
+temp:Math.max(20,Math.min(40,f.temp+Math.floor(Math.random()*3)-1)),done:false}));
+document.getElementById("status").textContent="Simulated readings refreshed.";
+render();
+});
+document.getElementById("complete").addEventListener("click",()=>{
+let f=[...fields].filter(x=>!x.done).sort((a,b)=>a.moisture-b.moisture)[0];
+if(!f){document.getElementById("status").textContent="All fields marked complete.";return;}
+f.done=true;
+document.getElementById("status").textContent=f.id+" marked complete in this demo.";
+render();
+});
+render();
+</script>
+</body>
+</html>
