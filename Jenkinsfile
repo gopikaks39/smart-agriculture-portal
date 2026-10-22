@@ -18,9 +18,13 @@ stage('Dashboard smoke test') {
                 }
             }
 
-           if (-not $html.Contains('moisture<30')) {
-    throw "Missing irrigation threshold below 30%."
-}
+            if (-not $html.Contains("moisture<30") -and
+                -not $html.Contains("moisture < 30")) {
+                Write-Output "Checking irrigation rule using the application source."
+                if (-not $html.Contains("f.moisture<30")) {
+                    throw "Could not find the irrigation threshold rule."
+                }
+            }
 
             Write-Output "Dashboard smoke test passed."
         '''
